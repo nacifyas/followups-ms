@@ -1,19 +1,11 @@
-from neo4j import GraphDatabase
-
+import neomodel, neomodel.config as config
 
 HOST = "atomflare.af"
 PORT = 7687
 USER = "neo4j"
 SECRET = "secret"
 
-def init_driver():
-    neo4j_url = f"neo4j://{HOST}:{PORT}"
 
-    driver = GraphDatabase.driver(
-        neo4j_url,
-        auth=(USER, SECRET)
-        )
-
-    driver.verify_connectivity()
-
-    return driver
+def init_db():
+    config.DATABASE_URL = f"neo4j://{HOST}:{PORT}"
+    neomodel.core.install_all_labels()
