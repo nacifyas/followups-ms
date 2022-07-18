@@ -16,7 +16,7 @@ async def get_graph(offset: int = 0, limit: int = 50):
     return GraphDAL().get_graph(offset, limit)
 
 
-@app.get("/{username}")
+@app.get("/users/{username}")
 async def get_graph_centered_on_node(username: str):
     return GraphDAL().get_graph_centered_on_node(username)
 
