@@ -1,5 +1,6 @@
-import datetime
-from neomodel import StructuredNode, UniqueIdProperty, StringProperty, IntegerProperty, RelationshipFrom, StructuredRel, DateTimeProperty
+from datetime import datetime
+from neomodel import StructuredNode, UniqueIdProperty, StringProperty, IntegerProperty, RelationshipTo, StructuredRel, DateTimeProperty
+from pydantic import BaseModel
 import pytz
 
 
@@ -9,9 +10,17 @@ class FollowUp(StructuredRel):
     )
 
 
-class User(StructuredNode):
+class UserNode(StructuredNode):
     uid = UniqueIdProperty()
-    username: StringProperty(unique_index=True)
-    age = IntegerProperty(index=True, default=0)
 
-    following = RelationshipFrom('User', 'Follows', model=FollowUp)
+    pk = StringProperty(unique_index=True)
+    username = StringProperty(unique_index=True)
+    age = IntegerProperty(index=True, default=0)
+    
+    follows = RelationshipTo('UserNode', 'Follows', model=FollowUp)
+
+
+class UserCreate(BaseModel):
+    pk: str
+    username: str
+    age: int

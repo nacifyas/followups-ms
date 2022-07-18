@@ -10,6 +10,6 @@ setup(
         "redis >= 4.3.4",
         "fastapi >= 0.78.0",
         "uvicorn >= 0.18.2",
-        "neo4j >= 4.4.5"
+        "neomodel >= 4.0.8"
     ],
 )
