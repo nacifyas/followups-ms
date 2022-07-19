@@ -2,15 +2,18 @@ from pprint import pprint
 from config.neo4j_conf import init_db
 from models.graph_model import UserNode, UserCreate
 
+
+def normalize(user_node: UserNode) -> dict[str:str]:
+    pass
+
 class GraphDAL():
 
-    def get_graph(self, limit: int = 0):
-        nodes = UserNode.nodes.all()[:limit]
-        print(nodes)
-        return nodes
+    def get_nodes(self, limit: int = 0) -> list[UserNode]:
+        nodes: list[UserNode] = UserNode.nodes.all()
+        return [nd for nd in nodes]
 
 
-    def get_node(self, uid: str):
+    def get_node_by_uid(self, uid: str):
         return UserNode.nodes.get(uid=uid)
 
 
@@ -33,3 +36,5 @@ class GraphDAL():
     def delete_relation(self, uid) -> None:
         pass
  
+init_db()
+print(GraphDAL().get_nodes())

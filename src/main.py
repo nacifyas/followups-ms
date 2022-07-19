@@ -16,15 +16,14 @@ async def _init_neo4j_():
 
 
 @app.get("/")
-async def get_graph(limit: int = 50) -> UserNode:
-    graph = GraphDAL().get_graph(limit)
-    return graph
+async def get_nodes(limit: int = 50) -> list[UserNode]:
+    return GraphDAL().get_nodes(limit)
 
 
 @app.get("/{uid}")
-async def get_node(uid: str):
+async def get_node_by_uid(uid: str) -> UserNode:
     try:
-        return GraphDAL().get_node(uid)
+        return GraphDAL().get_node_by_uid(uid)
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
