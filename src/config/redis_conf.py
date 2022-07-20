@@ -20,7 +20,7 @@ DB_INDEX = 3
 DB_URL = f"redis://{HOST}:{PORT}/{DB_INDEX}"
 
 redis_connection = redis.Redis.from_url(
-    url=DB_INDEX,
+    url=DB_URL,
     encoding=ENCODING,
     decode_responses=True,
 )
