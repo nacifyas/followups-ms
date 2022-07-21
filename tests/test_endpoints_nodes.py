@@ -26,8 +26,8 @@ def test_endpoint_create_node():
             "age": 10
         }
     )
-    r = requests.post(endpoint, data=node1.dict())
-    r2 = requests.post(endpoint, data=node2.dict())
+    r = requests.post(endpoint, data=node1.json())
+    r2 = requests.post(endpoint, data=node2.json())
     assert r.status_code == status.HTTP_201_CREATED
     assert r2.status_code == status.HTTP_201_CREATED
 
@@ -37,14 +37,14 @@ def test_endpoint_fail_create_existing_node():
     primary key fails
     """
     endpoint = f"{ROOT}/node"
-    existing_node = User(**
+    node = User(**
         {
             "pk": "test_pk",
             "username": "test_username",
             "age": 10
         }
     )
-    r = requests.post(endpoint, data=existing_node.dict())
+    r = requests.post(endpoint, json=node.json())
     assert r.status_code == status.HTTP_406_NOT_ACCEPTABLE
 
 
@@ -107,7 +107,7 @@ def test_endpoint_delete_edge():
     """
     pk1 = "test_pk"
     pk2 = "test_pk2"
-    endpoint = f"{ROOT}/edge?node_follower_pk={pk1}&node_followed_pk={pk2}"
+    endpoint = f"{ROOT}/edge?node1_primary_key={pk1}&node2_primary_key={pk2}"
     r = requests.delete(endpoint)
     assert r.status_code == status.HTTP_202_ACCEPTED
 
@@ -117,9 +117,9 @@ def test_endpoint_delete_node():
     """
     pk1 = "test_pk"
     pk2 = "test_pk2"
-    endpoint = f"{ROOT}/edge?node_pk={pk1}"
+    endpoint = f"{ROOT}/edge/primary_key={pk1}"
     r1 = requests.delete(endpoint)
-    endpoint = f"{ROOT}/edge?node_pk={pk2}"
+    endpoint = f"{ROOT}/edge/primary_key={pk2}"
     r2 = requests.delete(endpoint)
     assert r1.status_code == status.HTTP_202_ACCEPTED
     assert r2.status_code == status.HTTP_202_ACCEPTED

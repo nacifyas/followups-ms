@@ -17,8 +17,7 @@ async def commit_graphs():
     graph.commit()
 
 
-
-@app.get("/node/{node_pk}", status_code=status.HTTP_200_OK)
+@app.get("/node/{primary_key}", status_code=status.HTTP_200_OK)
 async def get_node_by_primary_key(primary_key: str) -> list:
     """ Given a primary key this endpoint will return
     its corresponding node
@@ -116,15 +115,15 @@ async def create_edge(node_follower_pk: str, node_followed_pk: str, properties: 
     )
 
 
-@app.delete("/node/{node_pk}", status_code=status.HTTP_202_ACCEPTED)
-async def delete_edge(node_pk: str) -> Response:
+@app.delete("/node/{primary_key}", status_code=status.HTTP_202_ACCEPTED)
+async def delete_edge(primary_key: str) -> Response:
     """ Given a node pk, it will
     delete it from the graph
 
     Args:
         edge_pk (str): pk if the edge
     """
-    GraphDAO().delete_node(node_pk)
+    GraphDAO().delete_node(primary_key)
     return Response(
         content="Deleted",
         status_code=status.HTTP_202_ACCEPTED

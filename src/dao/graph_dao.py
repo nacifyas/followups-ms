@@ -21,7 +21,7 @@ class GraphDAO():
 
     def create_node(self, node: User):
         self.graph.add_node(node.to_node())
-        return self.graph.commit().result_set[0]
+        return self.graph.commit().result_set
 
 
     def create_edge(self, node_follower_pk: str, node_followed_pk: str, properties: dict = {"date time":datetime.now()}):
