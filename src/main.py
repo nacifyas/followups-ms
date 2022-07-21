@@ -17,6 +17,17 @@ async def commit_graphs():
 
 
 
+@app.get("/nodes/{node_id}")
+async def get_node_by_id(node_id: str):
+    """ Given an id it returns the node
+
+    Args:
+        node_id (str)
+
+    """
+    return GraphDAO().get_node_by_id(node_id)
+
+
 @app.get("/graph/")
 async def get_graph(limit: int = 50):
     """ Returns a graph (nodes with all their relationships)
@@ -46,11 +57,11 @@ async def create_node(node: User):
 
 
 @app.post("/edge/")
-async def create_edge(node_follower, node_followed):
+async def create_edge(node_follower_id: str, node_followed_id: str):
     """ Given two nodes, it creates an edge betweem
     them
     """
-    return GraphDAO().create_edge(node_follower, node_followed)
+    return GraphDAO().create_edge(node_follower_id, node_followed_id)
 
 
 if __name__ == "__main__":

@@ -7,5 +7,4 @@ class FollowUp:
 
     def create_edge(self, node_follower, node_followed) -> Edge:
         properties = dict(self)
-        properties.pop("label")
         return Edge(node_follower, self.label, node_followed, properties=properties)
