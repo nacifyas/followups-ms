@@ -1,12 +1,29 @@
+from config.redis_conf import redis_connection as redis
+from models.followup_edge import FollowUp
+from models.user_node import User
+from redis.commands.graph import Graph
+
+
 class GraphDAO():
+    graph: Graph
 
-    async def get_nodes(self, offset: int = 0, limit: int = 50):
-        pass
-
-
-    async def get_graph(self, limit: int = 50):
-        pass
+    def __init__(self, graph: Graph = redis.graph("users_followups")):
+        self.graph = graph
 
 
-    async def get_node_neighbours(self, node_id: str):
-        pass
+    def get_graph(self, limit: int = 50):
+        return self.graph.query("MATCH (m) RETURN m").result_set
+
+
+    def create_node(self, node: User):
+        self.graph.add_node(node.to_node())
+        return self.commit_to_graph()
+
+
+    def create_edge(self, node_follower, node_followed) -> Graph:
+        edge = FollowUp().create_edge(node_follower, node_followed)
+        return self.graph.add_edge(edge)
+
+
+    def commit_to_graph(self):
+        return self.graph.commit().result_set

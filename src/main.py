@@ -1,23 +1,20 @@
+from models.user_node import User
 import uvicorn
 from fastapi import FastAPI
 from dao.graph_dao import GraphDAO
+from config.redis_conf import redis_connection as redis
 
 app = FastAPI()
 
 
-@app.get("/nodes/")
-async def get_nodes(offset: int = 0, limit: int = 50):
-    """ Returns list of all nodes, skipping the amount
-    specified by the offset, and limited by the argument
-    limit
-
-    Args:
-        limit (int, optional): _description_. Defaults to 50.
-
-    Returns:
-        list[Node]: list of all nodes
+@app.on_event("startup")
+async def commit_graphs():
+    """ Generates the requiered graphs if they
+    don't exist on the database
     """
-    return await GraphDAO().get_nodes(offset, limit)
+    graph = redis.graph("users_followups")
+    graph.commit()
+
 
 
 @app.get("/graph/")
@@ -30,22 +27,31 @@ async def get_graph(limit: int = 50):
     Returns:
         Graph: A graph
     """
-    return await GraphDAO().get_graph(limit)
+    return GraphDAO().get_graph(limit)
 
 
-@app.get("/nodes/{node_id}")
-async def get_node_neighbours(node_id: str):
-    """
-    Given a node id, it returns a list with all nodes
-    connected to it
+@app.post("/node/")
+async def create_node(node: User):
+    """ Creates a new node, following the
+    User model
 
     Args:
-        node_id (str): Node id
+        node (User): User node according
+        to the model
 
     Returns:
-        List[Node]:  A list with all nodes connected to it
+        Server response: Server responde
     """
-    return await GraphDAO().get_node_neighbours(node_id)
+    return GraphDAO().create_node(node)
+
+
+@app.post("/edge/")
+async def create_edge(node_follower, node_followed):
+    """ Given two nodes, it creates an edge betweem
+    them
+    """
+    return GraphDAO().create_edge(node_follower, node_followed)
+
 
 if __name__ == "__main__":
     uvicorn.run(app="main:app", host="127.0.0.1", port=8002, reload=True)
