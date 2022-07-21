@@ -27,7 +27,18 @@ class GraphDAO():
         node_follower = self.get_node_by_id(node_follower_id)
         node_followed = self.get_node_by_id(node_followed_id)
         edge = FollowUp().create_edge(node_follower, node_followed)
-        return self.graph.add_edge(edge)
+        self.graph.add_edge(edge)
+        return self.commit_to_graph()
+
+
+    def delete_node(self, node_id: str):
+        query = ""
+        return self.query_graph(query)
+
+
+    def delete_edge(self, edge_id: str):
+        query = ""
+        return self.query_graph(query)
 
 
     def commit_to_graph(self):

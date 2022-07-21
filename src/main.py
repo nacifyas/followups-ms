@@ -1,6 +1,6 @@
-from models.user_node import User
 import uvicorn
 from fastapi import FastAPI
+from models.user_node import User
 from dao.graph_dao import GraphDAO
 from config.redis_conf import redis_connection as redis
 
@@ -62,6 +62,28 @@ async def create_edge(node_follower_id: str, node_followed_id: str):
     them
     """
     return GraphDAO().create_edge(node_follower_id, node_followed_id)
+
+
+@app.delete("/node/{node_id}")
+async def delete_edge(node_id: str):
+    """ Given a node id, it will
+    delete it from the graph
+
+    Args:
+        edge_id (str): id if the edge
+    """
+    return GraphDAO().delete_node(node_id)
+
+
+@app.delete("/edge/{edge_id}")
+async def delete_edge(edge_id: str):
+    """ Given an edge id, it will
+    delete it from the graph
+
+    Args:
+        edge_id (str): id if the edge
+    """
+    return GraphDAO().delete_edge(edge_id)
 
 
 if __name__ == "__main__":
