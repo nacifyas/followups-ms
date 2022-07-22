@@ -1,9 +1,12 @@
-from datetime import datetime
+import json
+import asyncio
 import uvicorn
-from fastapi import FastAPI, HTTPException, Response, status
+from datetime import datetime
 from models.user_node import User
 from dao.graph_dao import GraphDAO
-from config.redis_conf import redis_connection as redis
+from config.variables import THIS_SERVICE
+from fastapi import FastAPI, HTTPException, Response, status
+from config.redis_conf import redis_connection as redis, redis_stream
 
 app = FastAPI()
 
@@ -32,7 +35,7 @@ async def get_node_by_primary_key(primary_key: str) -> list:
     Returns:
         list: A list containing the graph's entity data
     """
-    node = GraphDAO().get_node_by_primary_key(primary_key)
+    node = await GraphDAO().get_node_by_primary_key(primary_key)
     if len(node) > 0:
         return node
     else:
@@ -51,7 +54,7 @@ async def get_graph() -> list:
     Returns:
         list: List with nodes and edges
     """
-    return GraphDAO().get_graph()
+    return await GraphDAO().get_graph()
 
 
 @app.post("/node/", status_code=status.HTTP_201_CREATED)
@@ -70,13 +73,22 @@ async def create_node(node: User) -> Response:
     Returns:
         Response: HTTP 201 created
     """
-    nd = GraphDAO().get_node_by_primary_key(node.pk)
+    nd = await GraphDAO().get_node_by_primary_key(node.pk)
     if len(nd) > 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Primary key already exists"
         )
-    GraphDAO().create_node(node)
+    event = {
+        'SENDER':THIS_SERVICE,
+        'OP':'CREATE',
+        'FLAG':'INFO',
+        'DATA':json.dumps(node.dict()),
+    }
+    await asyncio.gather(
+        redis_stream.xadd('graph', event),
+        GraphDAO().create_node(node)
+    )
     return Response(
         content="Created",
         status_code=status.HTTP_201_CREATED
@@ -91,7 +103,7 @@ async def create_edge(node_follower_pk: str, node_followed_pk: str, properties: 
     Args:
         node_follower_pk (str): Primary key of the follower node
         node_followed_pk (str): Primary key of the followed node
-        properties (dict, optional): Dictionary with properties
+        properties (dict, optional): Dictionary with the edge properties
         to store in the edge. Defaults to { "date time": datetime.now() }.
 
     Raises:
@@ -101,14 +113,29 @@ async def create_edge(node_follower_pk: str, node_followed_pk: str, properties: 
     Returns:
         Response: HTTP 201 created
     """
-    nodes: list = GraphDAO().get_node_by_primary_key(node_follower_pk)
-    nodes.extend(GraphDAO().get_node_by_primary_key(node_followed_pk))
-    if len(nodes) < 2:
+    nd_ls1, nd_ls2 = await asyncio.gather(
+        GraphDAO().get_node_by_primary_key(node_follower_pk),
+        GraphDAO().get_node_by_primary_key(node_followed_pk)
+    )
+
+    if len(nd_ls1) + len(nd_ls2) < 2:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="Node not found"
         )
-    GraphDAO().create_edge(node_follower_pk, node_followed_pk, properties)
+    event = {
+        'SENDER':THIS_SERVICE,
+        'OP':'CREATE',
+        'FLAG':'INFO',
+        'DATA':'NODE_FOLLOWER_PK, NODE_FOLLOWED_PK, PROPERTIES',
+        'NODE_FOLLOWER_PK': node_follower_pk,
+        'NODE_FOLLOWED_PK': node_followed_pk,
+        'PROPERTIES': properties
+    }
+    await asyncio.gather(
+        redis_stream.xadd('graph', event),
+        GraphDAO().create_edge(node_follower_pk, node_followed_pk, properties)
+    )
     return Response(
         content="Created",
         status_code=status.HTTP_201_CREATED
@@ -123,7 +150,17 @@ async def delete_edge(primary_key: str) -> Response:
     Args:
         edge_pk (str): pk if the edge
     """
-    GraphDAO().delete_node(primary_key)
+    event = {
+        'SENDER':THIS_SERVICE,
+        'OP':'DELETE',
+        'FLAG':'INFO',
+        'DATA':'PRIMARY_KEY',
+        'PRIMARY_KEY':primary_key,
+    }
+    await asyncio.gather(
+        redis_stream.xadd('graph', event),
+        GraphDAO().delete_node(primary_key)
+    )
     return Response(
         content="Deleted",
         status_code=status.HTTP_202_ACCEPTED
@@ -138,7 +175,19 @@ async def delete_edge(node1_primary_key: str, node2_primary_key: str) -> Respons
     Args:
         edge_pk (str): pk if the edge
     """
-    GraphDAO().delete_edge(node1_primary_key, node2_primary_key)
+    event = {
+        'SENDER':THIS_SERVICE,
+        'OP':'DELETE',
+        'FLAG':'INFO',
+        'DATA':'NODE1_PRIMARY_KEY,NODE2_PRIMARY_KEY',
+        'NODE1_PRIMARY_KEY':node1_primary_key,
+        'NODE2_PRIMARY_KEY':node2_primary_key
+
+    }
+    await asyncio.gather(
+        redis_stream.xadd('graph', event),
+        GraphDAO().delete_edge(node1_primary_key, node2_primary_key)
+    )
     return Response(
         content="Deleted",
         status_code=status.HTTP_202_ACCEPTED

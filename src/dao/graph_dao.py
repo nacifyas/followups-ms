@@ -10,21 +10,21 @@ class GraphDAO():
     def __init__(self, graph: Graph = redis.graph("users_followups")):
         self.graph = graph
 
-    def get_node_by_primary_key(self, primary_key: str):
+    async def get_node_by_primary_key(self, primary_key: str):
         query = f"MATCH (user:User) WHERE user.pk = '{primary_key}' RETURN user"
         return self.query_graph(query)
 
-    def get_graph(self):
+    async def get_graph(self):
         query = f"MATCH (g) RETURN g"
         return self.query_graph(query)
 
 
-    def create_node(self, node: User):
+    async def create_node(self, node: User):
         self.graph.add_node(node.to_node())
         return self.graph.commit().result_set
 
 
-    def create_edge(self, node_follower_pk: str, node_followed_pk: str, properties: dict = {"date time":datetime.now()}):
+    async def create_edge(self, node_follower_pk: str, node_followed_pk: str, properties: dict = {"date time":datetime.now()}):
         follower = "(follower:User {pk: '%s'})" % node_follower_pk
         followed = "(followed:User {pk: '%s'})" % node_followed_pk
         followup_data = str(properties)
@@ -32,12 +32,12 @@ class GraphDAO():
         return self.query_graph(query)
 
 
-    def delete_node(self, primary_key: str):
+    async def delete_node(self, primary_key: str):
         query = f"MATCH (user:User) WHERE user.pk = '{primary_key}' DELETE user"
         return self.query_graph(query)
 
 
-    def delete_edge(self, node1_primary_key: str, node2_primary_key: str):
+    async def delete_edge(self, node1_primary_key: str, node2_primary_key: str):
         query = "MATCH (:User {pk: '%(user_nd1)s'})<-[f:Follows]->(:User {pk: '%(user_nd2)s'}) DELETE f" % {'user_nd1': node1_primary_key, 'user_nd2': node2_primary_key}
         return self.query_graph(query)
 
