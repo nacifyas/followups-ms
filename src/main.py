@@ -82,7 +82,6 @@ async def create_node(node: User) -> Response:
     event = {
         'SENDER':THIS_SERVICE,
         'OP':'CREATE',
-        'FLAG':'INFO',
         'DATA':json.dumps(node.dict()),
     }
     await asyncio.gather(
@@ -126,7 +125,6 @@ async def create_edge(node_follower_pk: str, node_followed_pk: str, properties: 
     event = {
         'SENDER':THIS_SERVICE,
         'OP':'CREATE',
-        'FLAG':'INFO',
         'DATA':'NODE_FOLLOWER_PK, NODE_FOLLOWED_PK, PROPERTIES',
         'NODE_FOLLOWER_PK': node_follower_pk,
         'NODE_FOLLOWED_PK': node_followed_pk,
@@ -148,12 +146,11 @@ async def delete_edge(primary_key: str) -> Response:
     delete it from the graph
 
     Args:
-        edge_pk (str): pk if the edge
+        edge_pk (str): primary key the node
     """
     event = {
         'SENDER':THIS_SERVICE,
         'OP':'DELETE',
-        'FLAG':'INFO',
         'DATA':'PRIMARY_KEY',
         'PRIMARY_KEY':primary_key,
     }
@@ -178,7 +175,6 @@ async def delete_edge(node1_primary_key: str, node2_primary_key: str) -> Respons
     event = {
         'SENDER':THIS_SERVICE,
         'OP':'DELETE',
-        'FLAG':'INFO',
         'DATA':'NODE1_PRIMARY_KEY,NODE2_PRIMARY_KEY',
         'NODE1_PRIMARY_KEY':node1_primary_key,
         'NODE2_PRIMARY_KEY':node2_primary_key
