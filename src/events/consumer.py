@@ -1,10 +1,9 @@
 import json
 import asyncio
-from dao.graph_dao import GraphDAO
 import requests
-from models.user import User
-from dal.userdal import UserDAL
-from config.redis_conf import redis, redis_stream
+from models.user_node import User
+from dao.graph_dao import GraphDAO
+from config.redis_conf import redis_stream, redis_connection as redis
 from config.variables import THIS_SERVICE, THIS_SERVICE_URL
 
 """ The events topology
@@ -17,10 +16,6 @@ structure:
         
         OP [CREATE, READ, UPDATE, DELETE]: Represents
         the operation regarding the event.
-        
-        STATUS [OK, FAIL]: It complements the FLAG
-        CONFIRMATION only, in order to approve (OK)
-        or decline (FAIL) a CUD operation.
 
         DATA: Data in key-value pairs, added as
         more entries, or as a large string, that will
@@ -83,10 +78,9 @@ async def inicialize_streams():
             event = {
                 'SENDER': THIS_SERVICE,
                 'OP': 'CREATE_STREAM',
-                'FLAG': 'INFO',
                 'DATA': stream
             }
-            await redis_stream.xadd(
+            await redis.xadd(
                 name=stream,
                 fields=event,
                 maxlen=STREAM_MAX_LENGHT

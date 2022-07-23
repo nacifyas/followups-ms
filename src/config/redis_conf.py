@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio.client as redis
 
 ENCODING = "utf-8"
 HOST = "atomflare.af"
@@ -16,7 +16,6 @@ redis_stream = redis.Redis.from_url(
 )
 
 
-DB_INDEX = 3
 DB_URL = f"redis://{HOST}:{PORT}/{DB_INDEX}"
 
 redis_connection = redis.Redis.from_url(
